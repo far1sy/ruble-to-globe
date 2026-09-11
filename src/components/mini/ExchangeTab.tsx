@@ -43,7 +43,9 @@ const fmt = (n: number) =>
 export function ExchangeTab() {
   const [from, setFrom] = useState("RUB");
   const [to, setTo] = useState("USDT");
-  const [amount, setAmount] = useState("50000");
+  const [sendInput, setSendInput] = useState("50000");
+  const [receiveInput, setReceiveInput] = useState("");
+  const [edited, setEdited] = useState<"send" | "receive">("send");
   const [picker, setPicker] = useState<null | "from" | "to">(null);
   const [done, setDone] = useState(false);
   const [fromMethod, setFromMethod] = useState<Method>("cash");
@@ -55,8 +57,19 @@ export function ExchangeTab() {
   };
 
   const rate = useMemo(() => byCode(from).rub / byCode(to).rub, [from, to]);
-  const value = Number(amount.replace(",", ".")) || 0;
-  const receive = value * rate * 0.995;
+  const k = rate * 0.995;
+
+  const editedRaw = edited === "send" ? sendInput : receiveInput;
+  const editedValue = parseAmount(editedRaw);
+  const hasInput = editedRaw.trim() !== "" && editedValue > 0;
+
+  const value = edited === "send" ? editedValue : editedValue / k;
+  const receive = edited === "send" ? editedValue * k : editedValue;
+
+  const sendDisplay =
+    edited === "send" ? sendInput : hasInput ? fmt(value) : "";
+  const receiveDisplay =
+    edited === "receive" ? receiveInput : hasInput ? fmt(receive) : "";
 
   const swap = () => {
     haptic("medium");
@@ -82,8 +95,11 @@ export function ExchangeTab() {
         <Field
           label="Отдаёте"
           currency={byCode(from)}
-          value={amount}
-          onValue={setAmount}
+          value={sendDisplay}
+          onValue={(v) => {
+            setEdited("send");
+            setSendInput(v);
+          }}
           method={fromMethod}
           onMethod={pickMethod(setFromMethod)}
           onPick={() => {
@@ -101,8 +117,11 @@ export function ExchangeTab() {
         <Field
           label="Получаете"
           currency={byCode(to)}
-          value={receive ? fmt(receive) : ""}
-          readOnly
+          value={receiveDisplay}
+          onValue={(v) => {
+            setEdited("receive");
+            setReceiveInput(v);
+          }}
           method={toMethod}
           onMethod={pickMethod(setToMethod)}
           onPick={() => {
