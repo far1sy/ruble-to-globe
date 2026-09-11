@@ -35,6 +35,10 @@ const METHODS: { id: Method; label: string }[] = [
 
 const byCode = (code: string) => CURRENCIES.find((c) => c.code === code)!;
 
+/** "1 234,56" → 1234.56; пустая строка/мусор → 0 */
+const parseAmount = (s: string) =>
+  Number(s.replace(/[\s\u00a0]/g, "").replace(",", ".")) || 0;
+
 const fmt = (n: number) =>
   n >= 1000
     ? n.toLocaleString("ru-RU", { maximumFractionDigits: 2 })
