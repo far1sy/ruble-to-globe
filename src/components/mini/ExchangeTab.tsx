@@ -46,6 +46,13 @@ export function ExchangeTab() {
   const [amount, setAmount] = useState("50000");
   const [picker, setPicker] = useState<null | "from" | "to">(null);
   const [done, setDone] = useState(false);
+  const [fromMethod, setFromMethod] = useState<Method>("cash");
+  const [toMethod, setToMethod] = useState<Method>("transfer");
+
+  const pickMethod = (setter: (m: Method) => void) => (m: Method) => {
+    haptic();
+    setter(m);
+  };
 
   const rate = useMemo(() => byCode(from).rub / byCode(to).rub, [from, to]);
   const value = Number(amount.replace(",", ".")) || 0;
@@ -77,6 +84,8 @@ export function ExchangeTab() {
           currency={byCode(from)}
           value={amount}
           onValue={setAmount}
+          method={fromMethod}
+          onMethod={pickMethod(setFromMethod)}
           onPick={() => {
             haptic();
             setPicker("from");
@@ -94,6 +103,8 @@ export function ExchangeTab() {
           currency={byCode(to)}
           value={receive ? fmt(receive) : ""}
           readOnly
+          method={toMethod}
+          onMethod={pickMethod(setToMethod)}
           onPick={() => {
             haptic();
             setPicker("to");
