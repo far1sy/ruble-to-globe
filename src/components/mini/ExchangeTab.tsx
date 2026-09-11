@@ -13,12 +13,24 @@ type Currency = {
 
 const CURRENCIES: Currency[] = [
   { code: "RUB", name: "Российский рубль", flag: "🇷🇺", rub: 1 },
-  { code: "USDT", name: "Tether", flag: "💵", rub: 92.4 },
+  { code: "TRY", name: "Турецкая лира", flag: "🇹🇷", rub: 2.71 },
+  { code: "SAR", name: "Саудовский риял", flag: "🇸🇦", rub: 25.1 },
+  { code: "EGP", name: "Египетский фунт", flag: "🇪🇬", rub: 1.94 },
+  { code: "KZT", name: "Казахстанский тенге", flag: "🇰🇿", rub: 0.19 },
+  { code: "KGS", name: "Кыргызский сом", flag: "🇰🇬", rub: 1.08 },
+  { code: "UZS", name: "Узбекский сум", flag: "🇺🇿", rub: 0.0074 },
+  { code: "TJS", name: "Таджикский сомони", flag: "🇹🇯", rub: 8.62 },
+  { code: "AZN", name: "Азербайджанский манат", flag: "🇦🇿", rub: 55.4 },
   { code: "USD", name: "Доллар США", flag: "🇺🇸", rub: 94.1 },
   { code: "EUR", name: "Евро", flag: "🇪🇺", rub: 101.6 },
-  { code: "KZT", name: "Казахстанский тенге", flag: "🇰🇿", rub: 0.19 },
-  { code: "TRY", name: "Турецкая лира", flag: "🇹🇷", rub: 2.71 },
-  { code: "AED", name: "Дирхам ОАЭ", flag: "🇦🇪", rub: 25.6 },
+  { code: "USDT", name: "Tether", flag: "₮", rub: 92.4 },
+];
+
+type Method = "cash" | "transfer";
+
+const METHODS: { id: Method; label: string }[] = [
+  { id: "cash", label: "Наличными" },
+  { id: "transfer", label: "Переводом" },
 ];
 
 const byCode = (code: string) => CURRENCIES.find((c) => c.code === code)!;
