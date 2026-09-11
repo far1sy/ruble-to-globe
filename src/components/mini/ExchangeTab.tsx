@@ -197,6 +197,17 @@ export function ExchangeTab() {
   );
 }
 
+/** Оставляет цифры и один разделитель, убирает лишние нули в начале. */
+function sanitize(raw: string) {
+  let s = raw.replace(/[^\d.,]/g, "").replace(/,/g, ".");
+  const first = s.indexOf(".");
+  if (first !== -1) {
+    s = s.slice(0, first + 1) + s.slice(first + 1).replace(/\./g, "");
+  }
+  s = s.replace(/^0+(?=\d)/, "");
+  return s;
+}
+
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between py-1">
@@ -231,10 +242,12 @@ function Field({
       <div className="flex items-center gap-3">
         <input
           inputMode="decimal"
+          autoComplete="off"
           value={value}
           readOnly={readOnly}
           placeholder="0"
-          onChange={(e) => onValue?.(e.target.value.replace(/[^\d.,]/g, ""))}
+          onFocus={(e) => e.currentTarget.select()}
+          onChange={(e) => onValue?.(sanitize(e.target.value))}
           className="min-w-0 flex-1 bg-transparent text-2xl font-semibold text-foreground outline-none placeholder:text-muted-foreground/50"
         />
         <button
