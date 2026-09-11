@@ -13,12 +13,24 @@ type Currency = {
 
 const CURRENCIES: Currency[] = [
   { code: "RUB", name: "Российский рубль", flag: "🇷🇺", rub: 1 },
-  { code: "USDT", name: "Tether", flag: "💵", rub: 92.4 },
+  { code: "TRY", name: "Турецкая лира", flag: "🇹🇷", rub: 2.71 },
+  { code: "SAR", name: "Саудовский риял", flag: "🇸🇦", rub: 25.1 },
+  { code: "EGP", name: "Египетский фунт", flag: "🇪🇬", rub: 1.94 },
+  { code: "KZT", name: "Казахстанский тенге", flag: "🇰🇿", rub: 0.19 },
+  { code: "KGS", name: "Кыргызский сом", flag: "🇰🇬", rub: 1.08 },
+  { code: "UZS", name: "Узбекский сум", flag: "🇺🇿", rub: 0.0074 },
+  { code: "TJS", name: "Таджикский сомони", flag: "🇹🇯", rub: 8.62 },
+  { code: "AZN", name: "Азербайджанский манат", flag: "🇦🇿", rub: 55.4 },
   { code: "USD", name: "Доллар США", flag: "🇺🇸", rub: 94.1 },
   { code: "EUR", name: "Евро", flag: "🇪🇺", rub: 101.6 },
-  { code: "KZT", name: "Казахстанский тенге", flag: "🇰🇿", rub: 0.19 },
-  { code: "TRY", name: "Турецкая лира", flag: "🇹🇷", rub: 2.71 },
-  { code: "AED", name: "Дирхам ОАЭ", flag: "🇦🇪", rub: 25.6 },
+  { code: "USDT", name: "Tether", flag: "₮", rub: 92.4 },
+];
+
+type Method = "cash" | "transfer";
+
+const METHODS: { id: Method; label: string }[] = [
+  { id: "cash", label: "Наличными" },
+  { id: "transfer", label: "Переводом" },
 ];
 
 const byCode = (code: string) => CURRENCIES.find((c) => c.code === code)!;
@@ -34,6 +46,13 @@ export function ExchangeTab() {
   const [amount, setAmount] = useState("50000");
   const [picker, setPicker] = useState<null | "from" | "to">(null);
   const [done, setDone] = useState(false);
+  const [fromMethod, setFromMethod] = useState<Method>("cash");
+  const [toMethod, setToMethod] = useState<Method>("transfer");
+
+  const pickMethod = (setter: (m: Method) => void) => (m: Method) => {
+    haptic();
+    setter(m);
+  };
 
   const rate = useMemo(() => byCode(from).rub / byCode(to).rub, [from, to]);
   const value = Number(amount.replace(",", ".")) || 0;
@@ -65,6 +84,8 @@ export function ExchangeTab() {
           currency={byCode(from)}
           value={amount}
           onValue={setAmount}
+          method={fromMethod}
+          onMethod={pickMethod(setFromMethod)}
           onPick={() => {
             haptic();
             setPicker("from");
@@ -82,6 +103,8 @@ export function ExchangeTab() {
           currency={byCode(to)}
           value={receive ? fmt(receive) : ""}
           readOnly
+          method={toMethod}
+          onMethod={pickMethod(setToMethod)}
           onPick={() => {
             haptic();
             setPicker("to");
@@ -167,6 +190,8 @@ function Field({
   onValue,
   onPick,
   readOnly,
+  method,
+  onMethod,
 }: {
   label: string;
   currency: Currency;
@@ -174,6 +199,8 @@ function Field({
   onValue?: (v: string) => void;
   onPick: () => void;
   readOnly?: boolean;
+  method: Method;
+  onMethod: (m: Method) => void;
 }) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
@@ -195,6 +222,31 @@ function Field({
           {currency.code}
           <ChevronDown className="h-4 w-4 opacity-60" />
         </button>
+      </div>
+
+      <div
+        role="group"
+        aria-label="Способ операции"
+        className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1"
+      >
+        {METHODS.map((m) => {
+          const active = m.id === method;
+          return (
+            <button
+              key={m.id}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onMethod(m.id)}
+              className={`rounded-lg py-2.5 text-sm font-semibold transition-all active:scale-[0.97] ${
+                active
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {m.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
