@@ -3,7 +3,7 @@ import { useEffect, type ReactNode } from "react";
 type Props = {
   open: boolean;
   onClose: () => void;
-  title?: string;
+  title?: string | undefined;
   children: ReactNode;
 };
 
