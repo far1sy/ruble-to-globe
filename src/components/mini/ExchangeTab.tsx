@@ -35,6 +35,10 @@ const METHODS: { id: Method; label: string }[] = [
 
 const byCode = (code: string) => CURRENCIES.find((c) => c.code === code)!;
 
+/** "1 234,56" → 1234.56; пустая строка/мусор → 0 */
+const parseAmount = (s: string) =>
+  Number(s.replace(/[\s\u00a0]/g, "").replace(",", ".")) || 0;
+
 const fmt = (n: number) =>
   n >= 1000
     ? n.toLocaleString("ru-RU", { maximumFractionDigits: 2 })
@@ -43,7 +47,9 @@ const fmt = (n: number) =>
 export function ExchangeTab() {
   const [from, setFrom] = useState("RUB");
   const [to, setTo] = useState("USDT");
-  const [amount, setAmount] = useState("50000");
+  const [sendInput, setSendInput] = useState("50000");
+  const [receiveInput, setReceiveInput] = useState("");
+  const [edited, setEdited] = useState<"send" | "receive">("send");
   const [picker, setPicker] = useState<null | "from" | "to">(null);
   const [done, setDone] = useState(false);
   const [fromMethod, setFromMethod] = useState<Method>("cash");
@@ -55,8 +61,19 @@ export function ExchangeTab() {
   };
 
   const rate = useMemo(() => byCode(from).rub / byCode(to).rub, [from, to]);
-  const value = Number(amount.replace(",", ".")) || 0;
-  const receive = value * rate * 0.995;
+  const k = rate * 0.995;
+
+  const editedRaw = edited === "send" ? sendInput : receiveInput;
+  const editedValue = parseAmount(editedRaw);
+  const hasInput = editedRaw.trim() !== "" && editedValue > 0;
+
+  const value = edited === "send" ? editedValue : editedValue / k;
+  const receive = edited === "send" ? editedValue * k : editedValue;
+
+  const sendDisplay =
+    edited === "send" ? sendInput : hasInput ? fmt(value) : "";
+  const receiveDisplay =
+    edited === "receive" ? receiveInput : hasInput ? fmt(receive) : "";
 
   const swap = () => {
     haptic("medium");
@@ -82,8 +99,11 @@ export function ExchangeTab() {
         <Field
           label="Отдаёте"
           currency={byCode(from)}
-          value={amount}
-          onValue={setAmount}
+          value={sendDisplay}
+          onValue={(v) => {
+            setEdited("send");
+            setSendInput(v);
+          }}
           method={fromMethod}
           onMethod={pickMethod(setFromMethod)}
           onPick={() => {
@@ -101,8 +121,11 @@ export function ExchangeTab() {
         <Field
           label="Получаете"
           currency={byCode(to)}
-          value={receive ? fmt(receive) : ""}
-          readOnly
+          value={receiveDisplay}
+          onValue={(v) => {
+            setEdited("receive");
+            setReceiveInput(v);
+          }}
           method={toMethod}
           onMethod={pickMethod(setToMethod)}
           onPick={() => {
@@ -174,6 +197,17 @@ export function ExchangeTab() {
   );
 }
 
+/** Оставляет цифры и один разделитель, убирает лишние нули в начале. */
+function sanitize(raw: string) {
+  let s = raw.replace(/[^\d.,]/g, "").replace(/,/g, ".");
+  const first = s.indexOf(".");
+  if (first !== -1) {
+    s = s.slice(0, first + 1) + s.slice(first + 1).replace(/\./g, "");
+  }
+  s = s.replace(/^0+(?=\d)/, "");
+  return s;
+}
+
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between py-1">
@@ -208,10 +242,12 @@ function Field({
       <div className="flex items-center gap-3">
         <input
           inputMode="decimal"
+          autoComplete="off"
           value={value}
           readOnly={readOnly}
           placeholder="0"
-          onChange={(e) => onValue?.(e.target.value.replace(/[^\d.,]/g, ""))}
+          onFocus={(e) => e.currentTarget.select()}
+          onChange={(e) => onValue?.(sanitize(e.target.value))}
           className="min-w-0 flex-1 bg-transparent text-2xl font-semibold text-foreground outline-none placeholder:text-muted-foreground/50"
         />
         <button
