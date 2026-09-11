@@ -223,6 +223,31 @@ function Field({
           <ChevronDown className="h-4 w-4 opacity-60" />
         </button>
       </div>
+
+      <div
+        role="group"
+        aria-label="Способ операции"
+        className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1"
+      >
+        {METHODS.map((m) => {
+          const active = m.id === method;
+          return (
+            <button
+              key={m.id}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onMethod(m.id)}
+              className={`rounded-lg py-2.5 text-sm font-semibold transition-all active:scale-[0.97] ${
+                active
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
