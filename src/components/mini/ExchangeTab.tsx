@@ -190,6 +190,8 @@ function Field({
   onValue,
   onPick,
   readOnly,
+  method,
+  onMethod,
 }: {
   label: string;
   currency: Currency;
@@ -197,6 +199,8 @@ function Field({
   onValue?: (v: string) => void;
   onPick: () => void;
   readOnly?: boolean;
+  method: Method;
+  onMethod: (m: Method) => void;
 }) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
